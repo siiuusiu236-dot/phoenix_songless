@@ -1,0 +1,1097 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PHOENIX Songless</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #081016;
+      --ink: #f5f7fb;
+      --muted: #aab7c4;
+      --line: rgba(255, 255, 255, .16);
+      --glass: rgba(11, 18, 25, .62);
+      --glass-strong: rgba(12, 23, 31, .82);
+      --teal: #48e0c2;
+      --amber: #ffcc66;
+      --rose: #ff6b8b;
+      --blue: #6aa8ff;
+      --shadow: 0 28px 90px rgba(0, 0, 0, .45);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 12%, rgba(72, 224, 194, .24), transparent 30%),
+        radial-gradient(circle at 86% 18%, rgba(255, 107, 139, .22), transparent 32%),
+        linear-gradient(135deg, #071017 0%, #121b22 50%, #180f18 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px);
+      background-size: 46px 46px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .9), transparent 78%);
+    }
+
+    button, input, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .5;
+    }
+
+    .app {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(145deg, rgba(72, 224, 194, .25), rgba(255, 107, 139, .18));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18);
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 54px);
+      line-height: .95;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 12px;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .08);
+      backdrop-filter: blur(18px);
+      white-space: nowrap;
+      color: #d9e5ef;
+      font-size: 13px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--amber);
+      box-shadow: 0 0 18px var(--amber);
+      flex: 0 0 auto;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(310px, .75fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--glass);
+      backdrop-filter: blur(26px);
+      box-shadow: var(--shadow);
+    }
+
+    .stage {
+      overflow: hidden;
+    }
+
+    .player-wrap {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      min-height: 240px;
+      background:
+        linear-gradient(135deg, rgba(72, 224, 194, .22), rgba(255, 204, 102, .08)),
+        #05080c;
+    }
+
+    #player {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transition: filter .28s ease, opacity .28s ease;
+    }
+
+    .hidden-video #player {
+      filter: blur(24px) saturate(.9) brightness(.72);
+      opacity: .78;
+      transform: scale(1.04);
+    }
+
+    .veil {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(0, 0, 0, .2), rgba(0, 0, 0, .46));
+      text-align: center;
+    }
+
+    .veil strong {
+      display: block;
+      font-size: clamp(24px, 4vw, 52px);
+      line-height: 1;
+    }
+
+    .veil span {
+      display: block;
+      margin-top: 10px;
+      color: #d0d9e3;
+    }
+
+    .revealed .veil {
+      opacity: 0;
+    }
+
+    .controls {
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .clip-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .clip-btn, .primary, .ghost, .danger {
+      min-height: 44px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .08);
+      backdrop-filter: blur(18px);
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+
+    .clip-btn:hover, .primary:hover, .ghost:hover, .danger:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, .34);
+      background: rgba(255, 255, 255, .13);
+    }
+
+    .clip-btn strong {
+      display: block;
+      font-size: 18px;
+    }
+
+    .clip-btn span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .answer-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, .28);
+      color: var(--ink);
+      outline: none;
+    }
+
+    input {
+      min-height: 48px;
+      padding: 0 14px;
+    }
+
+    textarea {
+      min-height: 114px;
+      padding: 12px 14px;
+      resize: vertical;
+    }
+
+    input:focus, textarea:focus {
+      border-color: rgba(72, 224, 194, .72);
+      box-shadow: 0 0 0 3px rgba(72, 224, 194, .13);
+    }
+
+    .primary {
+      padding: 0 18px;
+      background: linear-gradient(135deg, rgba(72, 224, 194, .9), rgba(106, 168, 255, .9));
+      color: #061016;
+      font-weight: 800;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .ghost, .danger {
+      padding: 0 14px;
+      min-width: 118px;
+    }
+
+    .danger {
+      border-color: rgba(255, 107, 139, .42);
+      color: #ffd6df;
+    }
+
+    .feedback {
+      min-height: 30px;
+      color: #dbe7ef;
+    }
+
+    .side {
+      display: grid;
+      gap: 18px;
+    }
+
+    .side-section {
+      padding: 18px;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      min-height: 72px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .06);
+    }
+
+    .stat b {
+      display: block;
+      font-size: 24px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .channel-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .channel {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, .2);
+      color: #dce7ef;
+    }
+
+    .channel small {
+      color: var(--muted);
+      text-align: right;
+    }
+
+    .manual {
+      display: grid;
+      gap: 10px;
+    }
+
+    .tiny {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .answer-card {
+      display: none;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(72, 224, 194, .35);
+      background: rgba(72, 224, 194, .09);
+      color: #defcf6;
+      line-height: 1.35;
+    }
+
+    .answer-card.show {
+      display: block;
+    }
+
+    .loading {
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: .58; }
+      50% { opacity: 1; }
+    }
+
+    @media (max-width: 860px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .player-wrap {
+        min-height: 190px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .app {
+        width: min(100% - 20px, 1180px);
+        padding-top: 18px;
+      }
+
+      .clip-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .answer-row {
+        grid-template-columns: 1fr;
+      }
+
+      .primary {
+        min-height: 46px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">PX</div>
+        <div>
+          <h1>PHOENIX Songless</h1>
+          <p class="subtitle">Adivina el video con clips de 0.1, 1, 5 y 10 segundos.</p>
+        </div>
+      </div>
+      <div class="status-pill" id="status"><span class="dot"></span><span>Cargando canales...</span></div>
+    </header>
+
+    <section class="layout">
+      <div class="panel stage">
+        <div class="player-wrap hidden-video" id="playerWrap">
+          <div id="player"></div>
+          <div class="veil">
+            <div>
+              <strong id="veilTitle">SONGLESS</strong>
+              <span id="veilText">Escucha el clip, el video seguirá oculto hasta revelar.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="clip-row" aria-label="Duración del clip">
+            <button class="clip-btn" data-seconds="0.1"><strong>0.1s</strong><span>micro pista</span></button>
+            <button class="clip-btn" data-seconds="1"><strong>1s</strong><span>corto</span></button>
+            <button class="clip-btn" data-seconds="5"><strong>5s</strong><span>normal</span></button>
+            <button class="clip-btn" data-seconds="10"><strong>10s</strong><span>última ayuda</span></button>
+          </div>
+
+          <div class="answer-row">
+            <input id="guess" type="text" placeholder="Nombre del video..." autocomplete="off">
+            <button class="primary" id="checkBtn">Comprobar</button>
+          </div>
+
+          <div class="actions">
+            <button class="ghost" id="nextBtn">Siguiente</button>
+            <button class="danger" id="revealBtn">Revelar</button>
+          </div>
+
+          <div class="feedback" id="feedback"></div>
+          <div class="answer-card" id="answerCard"></div>
+        </div>
+      </div>
+
+      <aside class="side">
+        <div class="panel side-section">
+          <h2>Partida</h2>
+          <div class="stats">
+            <div class="stat"><b id="score">0</b><span>Puntos</span></div>
+            <div class="stat"><b id="round">0</b><span>Ronda</span></div>
+            <div class="stat"><b id="bank">0</b><span>Videos</span></div>
+          </div>
+          <div class="channel-list" id="channels"></div>
+        </div>
+
+        <div class="panel side-section">
+          <h2>Videos manuales</h2>
+          <div class="manual">
+            <p class="tiny">Si el navegador bloquea la carga de YouTube, pega aquí enlaces de videos o Shorts de esos dos canales. Uno por línea.</p>
+            <textarea id="manualUrls" placeholder="https://www.youtube.com/watch?v=..."></textarea>
+            <button class="ghost" id="addManualBtn">Añadir URLs</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const CHANNELS = [
+      { handle: "@phoenixgeorge", url: "https://www.youtube.com/@phoenixgeorge" },
+      { handle: "@PHOENIX_GEORGEE", url: "https://www.youtube.com/@PHOENIX_GEORGEE" }
+    ];
+
+    const PROXIES = [
+      url => "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
+      url => "https://corsproxy.io/?" + encodeURIComponent(url)
+    ];
+
+    const INVIDIOUS_INSTANCES = [
+      "https://yewtu.be",
+      "https://inv.nadeko.net",
+      "https://invidious.nerdvpn.de",
+      "https://vid.puffyan.us"
+    ];
+
+    const state = {
+      videos: [],
+      current: null,
+      player: null,
+      ready: false,
+      score: 0,
+      round: 0,
+      clipTimer: null,
+      pendingClipSeconds: 0,
+      channelStats: new Map(CHANNELS.map(channel => [channel.handle, "cargando"]))
+    };
+
+    const els = {
+      status: document.getElementById("status"),
+      channels: document.getElementById("channels"),
+      bank: document.getElementById("bank"),
+      score: document.getElementById("score"),
+      round: document.getElementById("round"),
+      guess: document.getElementById("guess"),
+      checkBtn: document.getElementById("checkBtn"),
+      nextBtn: document.getElementById("nextBtn"),
+      revealBtn: document.getElementById("revealBtn"),
+      feedback: document.getElementById("feedback"),
+      answerCard: document.getElementById("answerCard"),
+      playerWrap: document.getElementById("playerWrap"),
+      veilTitle: document.getElementById("veilTitle"),
+      veilText: document.getElementById("veilText"),
+      manualUrls: document.getElementById("manualUrls"),
+      addManualBtn: document.getElementById("addManualBtn")
+    };
+
+    function setStatus(text, mode = "busy") {
+      els.status.querySelector("span:last-child").textContent = text;
+      const dot = els.status.querySelector(".dot");
+      dot.style.background = mode === "ok" ? "var(--teal)" : mode === "bad" ? "var(--rose)" : "var(--amber)";
+      dot.style.boxShadow = "0 0 18px " + dot.style.background;
+    }
+
+    function normalize(text) {
+      return (text || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/#[\w-]+/g, "")
+        .replace(/[^\w\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function extractVideoId(url) {
+      const patterns = [
+        /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+        /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+        /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+        /^([a-zA-Z0-9_-]{11})$/
+      ];
+      for (const pattern of patterns) {
+        const match = String(url).trim().match(pattern);
+        if (match) return match[1];
+      }
+      return "";
+    }
+
+    async function fetchThroughProxy(url) {
+      let lastError;
+      for (const proxy of PROXIES) {
+        try {
+          const response = await fetch(proxy(url), { cache: "no-store" });
+          if (!response.ok) throw new Error(response.status + " " + response.statusText);
+          return await response.text();
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      throw lastError || new Error("No se pudo conectar");
+    }
+
+    async function fetchJson(url) {
+      const attempts = [
+        () => fetch(url, { cache: "no-store" }),
+        ...PROXIES.map(proxy => () => fetch(proxy(url), { cache: "no-store" }))
+      ];
+      let lastError;
+      for (const attempt of attempts) {
+        try {
+          const response = await attempt();
+          if (!response.ok) throw new Error(response.status + " " + response.statusText);
+          return await response.json();
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      throw lastError || new Error("No se pudo cargar JSON");
+    }
+
+    async function postJson(url, body) {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      if (!response.ok) throw new Error(response.status + " " + response.statusText);
+      return await response.json();
+    }
+
+    function channelVideosUrl(channel) {
+      return channel.url.replace(/\/+$/, "") + "/videos";
+    }
+
+    function parseInitialData(html) {
+      const marker = "var ytInitialData = ";
+      const start = html.indexOf(marker);
+      if (start < 0) return null;
+      const jsonStart = html.indexOf("{", start);
+      let depth = 0;
+      let inString = false;
+      let escaped = false;
+
+      for (let index = jsonStart; index < html.length; index += 1) {
+        const char = html[index];
+        if (inString) {
+          if (escaped) {
+            escaped = false;
+          } else if (char === "\\") {
+            escaped = true;
+          } else if (char === '"') {
+            inString = false;
+          }
+          continue;
+        }
+        if (char === '"') inString = true;
+        if (char === "{") depth += 1;
+        if (char === "}") depth -= 1;
+        if (depth === 0) {
+          try {
+            return JSON.parse(html.slice(jsonStart, index + 1));
+          } catch {
+            return null;
+          }
+        }
+      }
+      return null;
+    }
+
+    function extractInnertubeConfig(html) {
+      const apiKey = html.match(/"INNERTUBE_API_KEY":"([^"]+)"/)?.[1];
+      const clientVersion = html.match(/"INNERTUBE_CLIENT_VERSION":"([^"]+)"/)?.[1] || "2.20260526.01.00";
+      const clientName = html.match(/"INNERTUBE_CLIENT_NAME":"([^"]+)"/)?.[1] || "WEB";
+      return apiKey ? { apiKey, clientVersion, clientName } : null;
+    }
+
+    function collectContinuations(data) {
+      const tokens = [];
+      const seen = new Set();
+
+      function visit(node) {
+        if (!node || typeof node !== "object") return;
+        const token = node.continuationCommand?.token ||
+          node.nextContinuationData?.continuation ||
+          node.reloadContinuationData?.continuation;
+        if (token && !seen.has(token)) {
+          seen.add(token);
+          tokens.push(token);
+        }
+        Object.values(node).forEach(visit);
+      }
+
+      visit(data);
+      return tokens;
+    }
+
+    function collectVideosFromInitialData(data, channel) {
+      const videos = [];
+      const seen = new Set();
+
+      function titleFromRenderer(renderer) {
+        return renderer.title?.runs?.map(run => run.text).join("") ||
+          renderer.title?.simpleText ||
+          renderer.headline?.simpleText ||
+          renderer.headline?.runs?.map(run => run.text).join("") ||
+          "Video sin título";
+      }
+
+      function visit(node) {
+        if (!node || typeof node !== "object") return;
+        const renderer = node.videoRenderer || node.gridVideoRenderer || node.reelItemRenderer;
+        const id = renderer?.videoId;
+        if (id && !seen.has(id)) {
+          seen.add(id);
+          videos.push({
+            id,
+            title: titleFromRenderer(renderer),
+            channel: channel.handle,
+            url: "https://www.youtube.com/watch?v=" + id
+          });
+        }
+        Object.values(node).forEach(visit);
+      }
+
+      visit(data);
+      return videos;
+    }
+
+    function collectVideoIdsFromHtml(html, channel) {
+      const videos = [];
+      const seen = new Set();
+      const patterns = [
+        /"videoId":"([a-zA-Z0-9_-]{11})"/g,
+        /watch\?v=([a-zA-Z0-9_-]{11})/g,
+        /shorts\/([a-zA-Z0-9_-]{11})/g
+      ];
+
+      for (const pattern of patterns) {
+        for (const match of html.matchAll(pattern)) {
+          const id = match[1];
+          if (seen.has(id)) continue;
+          seen.add(id);
+          videos.push({
+            id,
+            title: "Video de " + channel.handle,
+            channel: channel.handle,
+            url: "https://www.youtube.com/watch?v=" + id
+          });
+        }
+      }
+
+      return videos;
+    }
+
+    async function resolveChannelId(channel) {
+      const html = await fetchThroughProxy(channel.url);
+      const match = html.match(/"channelId":"(UC[a-zA-Z0-9_-]+)"/) ||
+        html.match(/"browseId":"(UC[a-zA-Z0-9_-]+)"/);
+      if (!match) throw new Error("No encontré el ID del canal");
+      return match[1];
+    }
+
+    async function loadYoutubeContinuations(initialData, config, channel) {
+      if (!config?.apiKey) return [];
+      const endpoint = "https://www.youtube.com/youtubei/v1/browse?key=" + encodeURIComponent(config.apiKey);
+      const videos = [];
+      const queue = collectContinuations(initialData).slice(0, 3);
+      const seenTokens = new Set(queue);
+      let pages = 0;
+
+      while (queue.length && pages < 40) {
+        const continuation = queue.shift();
+        pages += 1;
+        try {
+          const data = await postJson(endpoint, {
+            context: {
+              client: {
+                clientName: config.clientName,
+                clientVersion: config.clientVersion
+              }
+            },
+            continuation
+          });
+          videos.push(...collectVideosFromInitialData(data, channel));
+          for (const token of collectContinuations(data)) {
+            if (!seenTokens.has(token)) {
+              seenTokens.add(token);
+              queue.push(token);
+            }
+          }
+        } catch {
+          break;
+        }
+      }
+
+      return videos;
+    }
+
+    async function loadInvidiousPages(channelId, channel) {
+      if (!channelId) return [];
+      const videos = [];
+      const seen = new Set();
+
+      for (const instance of INVIDIOUS_INSTANCES) {
+        try {
+          let emptyPages = 0;
+          for (let page = 1; page <= 80; page += 1) {
+            const data = await fetchJson(instance + "/api/v1/channels/" + channelId + "/videos?sort_by=newest&page=" + page);
+            const items = Array.isArray(data) ? data : data.videos || [];
+            if (!items.length) {
+              emptyPages += 1;
+              if (emptyPages >= 2) break;
+              continue;
+            }
+            emptyPages = 0;
+            for (const item of items) {
+              const id = item.videoId || extractVideoId(item.videoId || item.url || "");
+              if (!id || seen.has(id)) continue;
+              seen.add(id);
+              videos.push({
+                id,
+                title: item.title || "Video sin título",
+                channel: channel.handle,
+                url: "https://www.youtube.com/watch?v=" + id
+              });
+            }
+          }
+          if (videos.length) break;
+        } catch {
+          continue;
+        }
+      }
+
+      return videos;
+    }
+
+    async function loadChannel(channel) {
+      const scraped = [];
+      let videosHtml = "";
+      let initialData = null;
+      let config = null;
+      let channelId = "";
+
+      try {
+        videosHtml = await fetchThroughProxy(channelVideosUrl(channel));
+        initialData = parseInitialData(videosHtml);
+        config = extractInnertubeConfig(videosHtml);
+        channelId = videosHtml.match(/"channelId":"(UC[a-zA-Z0-9_-]+)"/)?.[1] ||
+          videosHtml.match(/"browseId":"(UC[a-zA-Z0-9_-]+)"/)?.[1] ||
+          "";
+        scraped.push(...collectVideosFromInitialData(initialData, channel));
+        scraped.push(...collectVideoIdsFromHtml(videosHtml, channel));
+        scraped.push(...await loadYoutubeContinuations(initialData, config, channel));
+      } catch {
+        // Extra providers below still give the game playable videos.
+      }
+
+      try {
+        channelId = channelId || await resolveChannelId(channel);
+        const xml = await fetchThroughProxy("https://www.youtube.com/feeds/videos.xml?channel_id=" + channelId);
+        const doc = new DOMParser().parseFromString(xml, "application/xml");
+        const entries = [...doc.querySelectorAll("entry")];
+        scraped.push(...entries.map(entry => ({
+          id: entry.querySelector("videoId")?.textContent || "",
+          title: entry.querySelector("title")?.textContent || "Video sin título",
+          channel: channel.handle,
+          url: entry.querySelector("link")?.getAttribute("href") || ""
+        })));
+      } catch {
+        // Invidious fallback below can still load full pages when RSS fails.
+      }
+
+      try {
+        scraped.push(...await loadInvidiousPages(channelId, channel));
+      } catch {
+        // Browser-side public instances are best-effort.
+      }
+
+      if (!scraped.length) throw new Error("No pude leer videos del canal");
+
+      return dedupeVideos(scraped.filter(video => video.id));
+    }
+
+    async function loadVideos() {
+      renderChannels();
+      const results = await Promise.allSettled(CHANNELS.map(loadChannel));
+      results.forEach((result, index) => {
+        const handle = CHANNELS[index].handle;
+        if (result.status === "fulfilled") {
+          state.channelStats.set(handle, result.value.length + " videos");
+          state.videos.push(...result.value);
+        } else {
+          state.channelStats.set(handle, "bloqueado");
+        }
+      });
+
+      state.videos = dedupeVideos(state.videos);
+      updateStats();
+      renderChannels();
+
+      if (state.videos.length) {
+        setStatus("Listo con " + state.videos.length + " videos", "ok");
+        nextRound();
+      } else {
+        setStatus("Carga bloqueada: pega URLs manuales", "bad");
+        els.feedback.textContent = "No pude leer los canales desde el navegador. Pega enlaces de videos o Shorts para activar la partida.";
+      }
+    }
+
+    function dedupeVideos(videos) {
+      const seen = new Set();
+      return videos.filter(video => {
+        if (!video.id || seen.has(video.id)) return false;
+        seen.add(video.id);
+        return true;
+      });
+    }
+
+    function renderChannels() {
+      els.channels.innerHTML = CHANNELS.map(channel => `
+        <div class="channel">
+          <span>${channel.handle}</span>
+          <small>${state.channelStats.get(channel.handle) || "pendiente"}</small>
+        </div>
+      `).join("");
+    }
+
+    function updateStats() {
+      els.score.textContent = state.score;
+      els.round.textContent = state.round;
+      els.bank.textContent = state.videos.length;
+    }
+
+    function waitForPlayer() {
+      return new Promise(resolve => {
+        if (state.ready) return resolve();
+        const id = setInterval(() => {
+          if (state.ready) {
+            clearInterval(id);
+            resolve();
+          }
+        }, 80);
+      });
+    }
+
+    async function nextRound() {
+      if (!state.videos.length) return;
+      await waitForPlayer();
+      clearTimeout(state.clipTimer);
+      state.current = state.videos[Math.floor(Math.random() * state.videos.length)];
+      state.round += 1;
+      updateStats();
+      els.guess.value = "";
+      els.feedback.textContent = "";
+      els.answerCard.classList.remove("show");
+      els.answerCard.textContent = "";
+      els.playerWrap.classList.add("hidden-video");
+      els.playerWrap.classList.remove("revealed");
+      els.veilTitle.textContent = "RONDA " + state.round;
+      els.veilText.textContent = "Elige una duración para escuchar el clip.";
+      state.player.cueVideoById({ videoId: state.current.id, startSeconds: 0 });
+    }
+
+    async function playClip(seconds) {
+      if (!state.current) return;
+      await waitForPlayer();
+      clearTimeout(state.clipTimer);
+      state.pendingClipSeconds = seconds;
+      els.feedback.innerHTML = '<span class="loading">Reproduciendo ' + seconds + 's...</span>';
+      els.veilText.textContent = "Clip de " + seconds + " segundos";
+      const duration = Number(state.player.getDuration?.() || 0);
+      const maxStart = Math.max(0, Math.min(duration - 12, 90));
+      const start = maxStart > 4 ? Math.floor(Math.random() * maxStart) : 0;
+      state.player.setVolume?.(100);
+      state.player.unMute();
+      state.player.loadVideoById({ videoId: state.current.id, startSeconds: start });
+      state.player.playVideo();
+    }
+
+    function stopClipAfterSoundStarts() {
+      if (!state.pendingClipSeconds) return;
+      const seconds = state.pendingClipSeconds;
+      state.pendingClipSeconds = 0;
+      clearTimeout(state.clipTimer);
+      state.player.setVolume?.(100);
+      state.player.unMute();
+      state.clipTimer = setTimeout(() => {
+        state.player.pauseVideo();
+        els.feedback.textContent = "Ahora escribe el título del video.";
+        els.guess.focus();
+      }, seconds * 1000);
+    }
+
+    function handlePlayerError() {
+      clearTimeout(state.clipTimer);
+      state.pendingClipSeconds = 0;
+      els.feedback.textContent = "Ese video no se puede reproducir aquí. Pasando al siguiente...";
+      setTimeout(nextRound, 900);
+    }
+
+    function checkGuess() {
+      if (!state.current) return;
+      const guess = normalize(els.guess.value);
+      const title = normalize(state.current.title);
+      if (!guess) {
+        els.feedback.textContent = "Escribe una respuesta primero.";
+        return;
+      }
+      const good = guess.length >= 4 && (title.includes(guess) || guess.includes(title));
+      if (good) {
+        state.score += 1;
+        updateStats();
+        els.feedback.textContent = "Correcto. Era ese video.";
+        revealAnswer();
+      } else {
+        els.feedback.textContent = "Todavía no. Prueba otro clip o ajusta el título.";
+      }
+    }
+
+    function revealAnswer() {
+      if (!state.current) return;
+      clearTimeout(state.clipTimer);
+      state.player.pauseVideo();
+      els.playerWrap.classList.remove("hidden-video");
+      els.playerWrap.classList.add("revealed");
+      els.answerCard.innerHTML = `<strong>${state.current.title}</strong><br>${state.current.channel}`;
+      els.answerCard.classList.add("show");
+    }
+
+    function addManualVideos() {
+      const lines = els.manualUrls.value.split(/\n+/).map(line => line.trim()).filter(Boolean);
+      const additions = lines.map((line, index) => {
+        const id = extractVideoId(line);
+        if (!id) return null;
+        return {
+          id,
+          title: "Video manual " + (index + 1),
+          channel: "manual Phoenix",
+          url: line
+        };
+      }).filter(Boolean);
+
+      if (!additions.length) {
+        els.feedback.textContent = "No encontré IDs válidos en esas URLs.";
+        return;
+      }
+
+      state.videos = dedupeVideos([...state.videos, ...additions]);
+      state.channelStats.set("@phoenixgeorge", state.channelStats.get("@phoenixgeorge") === "bloqueado" ? "manual" : state.channelStats.get("@phoenixgeorge"));
+      state.channelStats.set("@PHOENIX_GEORGEE", state.channelStats.get("@PHOENIX_GEORGEE") === "bloqueado" ? "manual" : state.channelStats.get("@PHOENIX_GEORGEE"));
+      els.manualUrls.value = "";
+      updateStats();
+      renderChannels();
+      setStatus("Listo con videos manuales", "ok");
+      if (!state.current) nextRound();
+    }
+
+    document.querySelectorAll(".clip-btn").forEach(button => {
+      button.addEventListener("click", () => playClip(Number(button.dataset.seconds)));
+    });
+
+    els.checkBtn.addEventListener("click", checkGuess);
+    els.guess.addEventListener("keydown", event => {
+      if (event.key === "Enter") checkGuess();
+    });
+    els.nextBtn.addEventListener("click", nextRound);
+    els.revealBtn.addEventListener("click", revealAnswer);
+    els.addManualBtn.addEventListener("click", addManualVideos);
+
+    window.onYouTubeIframeAPIReady = () => {
+      state.player = new YT.Player("player", {
+        height: "100%",
+        width: "100%",
+        videoId: "",
+        playerVars: {
+          autoplay: 0,
+          controls: 0,
+          disablekb: 1,
+          enablejsapi: 1,
+          modestbranding: 1,
+          playsinline: 1,
+          rel: 0
+        },
+        events: {
+          onReady: () => {
+            state.ready = true;
+            state.player.setVolume?.(100);
+            state.player.unMute();
+            loadVideos();
+          },
+          onStateChange: event => {
+            if (event.data === YT.PlayerState.PLAYING) stopClipAfterSoundStarts();
+          },
+          onError: handlePlayerError
+        }
+      });
+    };
+
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+  </script>
+</body>
+</html>
